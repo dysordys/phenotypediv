@@ -28,8 +28,15 @@ extract_dynamical_variables <- function(snap) {
     return(list(n=n, m=m, P=P))
 }
 
+## obtain species diversity (Hill number) of order q
+## Input:
+## - n: vector of species abundances (does not have to be relative)
+## - q: order of diversity index (q = 2 is the inverse Simpson index)
+## Output:
+## - the species diversity of the community
 species_diversity <- function(n, q) {
-    return(sum((n/sum(n))^q)^(1/(1-q)))
+    p <- n/sum(n) ## convert abundances to relative abundances
+    return(sum(p^q)^(1/(1-q)))
 }
 
 ## calculate functional diversity over trait space, given species' densities,
