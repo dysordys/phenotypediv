@@ -33,9 +33,9 @@ ellipseframe <- function(m, P, p) {
     eP <- eigen(P*s)
     sqrtP <- eP$vectors %*% diag(sqrt(eP$values)) %*% t(eP$vectors)
     phi <- seq(0, 2*pi, l=501)
-    ellipse <- tibble(x=cos(phi), y=sin(phi))
+    ellipse <- data.frame(x=cos(phi), y=sin(phi))
     for (i in 1:nrow(ellipse)) ellipse[i,] <- sqrtP%*%unlist(ellipse[i,])
-    ellipse <- ellipse %>% mutate(x=x+m[1], y=y+m[2])
+    ellipse <- ellipse %>% mutate(x=x+m[1], y=y+m[2]) %>% as_tibble
     return(ellipse)
 }
 
@@ -150,7 +150,7 @@ plot_snapshot_2D <- function(snap) {
     fakem <- c(0, 0)
     fakeP <- matrix(c(0.00001, 0, 0, 0.00001)^2, L, L)
     trait <- bind_rows(trait, ellipseframe(fakem,fakeP,0.01) %>% mutate(sp=0,n=0))
-    ntot <- sum((trait %>% group_by(sp) %>% summarise(nmean=mean(n)))$nmean)
+    ntot <- sum((trait%>%group_by(sp)%>%summarise(nmean=mean(n))%>%ungroup)$nmean)
     trait <- trait %>% mutate(sp=as.factor(sp), n=n/ntot)
     return(ggplot(trait) +
            geom_polygon(aes(x=x, y=y, colour=sp, fill=sp, alpha=n)) +
