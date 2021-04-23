@@ -5,9 +5,9 @@ Rows are individual shells, so the dataset includes 1787 individuals.
 
 Columns:
 
-- species: Most of these are published species names, although a few are currently unpublished (e.g. 'corini') or are morphospecies that we think are good biological species.
+- species: Most of these are published species names, although a few are currently unpublished (e.g., "corini", "krameri MS", and "phanaticus MS"), or are morphospecies that we think are good biological species. Lineages corresponding to the type specimens are named normally (e.g., "albemarlensis"), while secondary lineages are named with an extra label (like "albermarlensis CA"). In this case, the label "CA" shows that the specimens are from a different volcano - Cerro Azul, in this case - than the type specimen. Another example is "perrus1", a population sampled from one side of Fernandina Island, while "perrus" (without any labels) is from the opposite side and represents a separate lineage.
 
-- island: The island each individual comes from, or in the case of the Isabela individuals, the particular volcano (AL: Alcedo Volcano, Isabela; CA: Cerro Azul, Isabela; CH: Champion islet, near Floreana; DA: Darwin Volcano, Isabela; ED: Eden islet, near Santa Cruz; ES: Espanola; FA: Fernandina; FL: Floreana; GA: Gardner islet, near Floreana; PI: Pinzon; SA: Santiago; SC: Santa Cruz; SF: Santa Fe; SL: San Cristobal; SN: Sierra Negra, Isabela; WF: Volcan Wolf, Isabela).
+- island: The island each individual comes from - or, in the case of the Isabela individuals, the particular volcano (AL: Alcedo Volcano, Isabela; CA: Cerro Azul, Isabela; CH: Champion islet, near Floreana; DA: Darwin Volcano, Isabela; ED: Eden islet, near Santa Cruz; ES: Espanola; FA: Fernandina; FL: Floreana; GA: Gardner islet, near Floreana; PI: Pinzon; SA: Santiago; SC: Santa Cruz; SF: Santa Fe; SL: San Cristobal; SN: Sierra Negra, Isabela; WF: Volcan Wolf, Isabela).
 
 - site: This is either the station within which we had found the specimen (e.g. SL05-10), or is the museum lot that the shell came from (e.g. MCZ 278892).
 
