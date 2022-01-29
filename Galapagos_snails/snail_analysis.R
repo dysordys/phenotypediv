@@ -2,122 +2,118 @@ require(tidyverse) # for efficient data manipulation and plotting
 require(mvtnorm) # for multivariate normal distributions
 
 
-# change these two parameters to adjust species- and functional diversity metrics
+# change these parameters to adjust species- and functional diversity metrics
 q_sp <- 2 # order of species diversity index (2 corresponds to inverse Simpson)
 q_fn <- 2 # order of functional diversity index
+res <- 501 # Resolution of trait axis binning; increase for more bins
 
 
-# calculate functional diversity over 2D trait space
+# Calculate functional diversity over 2D trait space
 # Input:
 # - n: vector of species abundances, with as many entries as species
-# - m1: m1[i] is the 1st entry of species i's mean trait vector
-# - m2: m2[i] is the 2nd entry of species i's mean trait vector
-# - P11: P11[i] is the (1,1)th entry of species i's covariance matrix
-# - P12, P21, P22: as above, but for the corresponding matrix entries
-# - q: Hill exponent (=2 for inverse Simpson index)
-# - taxis: trait axis, i.e. seq(from, to, length.out), for both traits
+# - m: list of mean trait vectors; m[[i]][k] is species i's kth vector entry
+# - P: list of trait covariance matrices; P[[i]][k,l] is species i's (k,l)th entry
+# - q: order of diversity index
+# - taxis: trait axis, i.e. seq(from, to, l), used for both traits
 # Output:
-# - the functional diversity of the community
-get_div <- function(n, m1, m2, P11, P12, P21, P22, q, taxis) {
-  m <- matrix(c(m1, m2), length(n), 2)
-  P <- array(c(P11, P21, P12, P22), c(length(n), 2, 2))
-  ztab <- unname(as.matrix(expand.grid(t1=taxis, t2=taxis)))
-  p <- rep(0, nrow(ztab))
-  for (i in 1:length(n)) p <- p+n[i]*dmvnorm(x=ztab, mean=m[i,], sigma=P[i,,])
-  p <- p/sum(p)
-  func_div <- ((taxis[2]-taxis[1])^2)*(sum(p^q))^(1/(1-q))
-  return(func_div)
+# - A single number, the community's functional diversity index
+diversity <- function(n, m, P, q, taxis) {
+  ztab <- unname(as.matrix(expand.grid(taxis, taxis)))
+  s <- rep(0, nrow(ztab))
+  for (i in 1:length(n)) s <- s+n[i]*dmvnorm(x=ztab, mean=m[[i]], sigma=P[[i]])
+  s <- s/sum(s)
+  ((taxis[2]-taxis[1])^2)*(sum(s^q))^(1/(1-q))
 }
 
-# maximum likelihood estimates of mean and covariance of binormal distribution
+# Obtain discretized trait axis (which will be used along both trait directions)
 # Input:
-# - dat: matrix, where dat[i,k] is individual i's trait component k
+# - snail_data: data frame for whole snail assemblage, with columns t1 and t2
+# - resolution: number of bins to divide trait axis into
 # Output:
-# - a vector with 6 entries: the two entries of the mean vector (m1, m2) and
-#   the four entries of the covariance matrix (P11, P12, P21, P22)
+# - A sequence going from three times the smallest to three times the largest
+#   recorded trait value (after normalization), with the number of entries
+#   equal to resolution
+trait_axis <- function(snail_data, resolution) {
+  lim <- range(c(snail_data$t1, snail_data$t2), na.rm=TRUE)
+  seq(3*lim[1], 3*lim[2], l=resolution)
+}
+
+# Maximum likelihood estimate of mean and covariance of binormal distribution
+# Input:
+# - dat: tibble with 3 columns: species, t1, and t2 (for the two traits)
+# Output:
+# - A tibble with columns species, data, m, and P. The latter 3 are nested;
+#   m and P are lists of vectors and matrices, respectively
 mle_binorm <- function(dat) {
-  N <- nrow(dat) # number of data points
-  me <- unname(colSums(dat)/N) # fitted mean
-  Pe <- c(0, 0)%o%c(0, 0) # initialize covariance matrix
-  for (i in 1:N) Pe <- Pe + (dat[i,]-me)%o%(dat[i,]-me) # obtain cov matrix
-  Pe <- Pe/(N-1) # normalize by degrees of freedom minus 1 for unbiased estimate
-  return(c(me, Pe)) # return fitted mean and covariance, coerced into a vector
+  # Sub-function to extract sample mean trait
+  # Input: a tibble with 3 columns: species, t1, and t2 (but "species" is unique)
+  # Output: a vector with 2 entries, the mean t1 and mean t2
+  sample_mean <- function(data) {
+    return(c(mean(data$t1), mean(data$t2)))
+  }
+  # Sub-function to extract sample trait covariance
+  # Input: a tibble with 3 columns: species, t1, and t2 (but "species" is unique)
+  # Output: a 2x2 matrix, the estimated trait covariance
+  sample_cov <- function(data) {
+    tab <- as.matrix(select(data, t1, t2))
+    N <- nrow(tab)
+    m <- sample_mean(data)
+    P <- c(0, 0)%o%c(0, 0)
+    for (i in 1:N) P <- P + (tab[i,]-m)%o%(tab[i,]-m)
+    return(unname(P/(N-1)))
+  }
+  dat %>%
+    group_by(species) %>%
+    nest() %>%
+    ungroup() %>%
+    mutate(m=map(data, sample_mean), # Calculate mean for each species,
+           P=map(data, sample_cov))  # and the covariance for each species
 }
 
 
-# load data with number of plants in humid/arid zones per island
-snailveg <- read_csv("vegzonetotals.csv")
-
-# load morphological data
 snail <- read_csv("snaildata.csv") %>%
-  # trait 1: centroid size; trait 2: PC1 of shape (explains 80% of variance)
+  # Trait 1: centroid size; trait 2: PC1 of shape (explains >80% of variance):
   rename(t1="Centroidsize", t2="shape1") %>%
-  # standardize trait data by subtracting mean & dividing by std dev
+  # Standardize trait data by subtracting mean & dividing by std dev:
   mutate(t1=(t1-mean(t1))/sd(t1), t2=(t2-mean(t2))/sd(t2)) %>%
-  # remove three outlier satellite islands
+  # Remove three outlier satellite islands:
   filter(!(island %in% c("CH", "ED", "GA"))) %>%
-  # throw out achatellinus species, which has only 2 sampled individuals
+  # Remove the species N. achatellinus, which has only 2 sampled individuals:
   filter(!(species=="achatellinus")) %>%
-  # replace NAs with 0s in vegetation zone columns
+  # Replace NAs with 0s in vegetation zone columns:
   replace_na(list(vegzoneHumid=0, vegzoneTransition=0, vegzoneArid=0)) %>%
-  # convert numerical vegetation zone info into "humid" / "arid"
-  mutate(zone=case_when(
+  # Convert numerical vegetation zone labels into "humid" / "arid":
+  mutate(habitat=case_when(
     vegzoneHumid==1 ~ "humid",
     vegzoneArid==1 ~ "arid",
     TRUE ~ "none")
   ) %>%
-  filter(zone %in% c("humid", "arid")) %>%
-  # keep only those columns that will be needed
-  select(species, island, zone, t1, t2)
+  filter(habitat %in% c("humid", "arid")) %>%
+  select(island, habitat, species, t1, t2) # Relevant columns only
 
-
-# lower and upper limits of data in both trait directions, used to define taxis
-lim <- snail %>% select(t1, t2) %>% range(na.rm=TRUE)
-# increasing length and/or resolution of trait axis does not change the results
-taxis <- seq(3*lim[1], 3*lim[2], l=501)
-
-snail_diversity <- snail %>%
-  # obtain number of individuals per species, plus trait mean and covar matrix
-  group_by(species, island, zone) %>%
-  summarise(n=n(), fit=list(mle_binorm(as.matrix(tibble(t1=t1, t2=t2)))),
-            .groups="drop") %>%
-  # new columns for mean trait (m1,m2) and covar matrix (P11,P12,P21,P22)
-  mutate(
-    m1=map_dbl(fit, `[`(1)),
-    m2=map_dbl(fit, `[`(2)),
-    P11=map_dbl(fit, `[`(3)),
-    P12=map_dbl(fit, `[`(4)),
-    P21=map_dbl(fit, `[`(5)),
-    P22=map_dbl(fit, `[`(6)),
-  )
-
-# obtain species- and functional diversity measures
-snail_diversity <- snail_diversity %>%
-  group_by(island, zone) %>%
-  # for each island and zone, obtain:
-  summarise(S=length(unique(species)), # species richness
-            ntot=sum(n), # number of sampled individuals in local community
-            # species diversity; q_sp at the top controls the order of
-            spdiv=sum((n/sum(n))^q_sp)^(1/(1-q_sp)), # the diversity index
-            # functional diversity; q_fn controls the order of the index
-            funcdiv=get_div(n, m1, m2, P11, P12, P12, P22, q_fn, taxis),
-            .groups="drop") %>%
-  # add data on plant species richness in each zone on each island
-  mutate(plants=ifelse(zone=="humid",
-                       snailveg$HumidTotal[match(island, snailveg$island)],
-                       snailveg$AridTotal[match(island, snailveg$island)]))
-
-# plot diversity data
-# x-axis: species diversity per host plant species
-# y-axis: functional diversity
-snail_diversity %>%
-  # normalize species diversity by number of available host plant species:
-  mutate(spdiv=spdiv/plants) %>%
-  # begin plotting:
-  ggplot() +
-  aes(x=spdiv, y=funcdiv, label=island, colour=zone) +
-  geom_text(fontface="bold") +
+snail %>%
+  group_by(island, habitat) %>%
+  nest() %>%
+  ungroup() %>%
+  left_join(read_csv("vegzonetotals.csv"),
+            by="island") %>% # Add host plant species richness data
+  rowwise() %>% # Choose plant richness from appropriate habitat:
+  mutate(plants=if_else(habitat=="arid", AridTotal, HumidTotal)) %>%
+  ungroup() %>%
+  select(-AridTotal, -HumidTotal) %>%
+  mutate(fit=map(data, mle_binorm), # Calculate mean & covariance for all species
+         n=map(data, ~count(.x, species)$n), # Abundance of each species
+         S=map_int(n, length), # Species richness per island
+         m=map(fit, ~.x$m), # Put means in separate column
+         P=map(fit, ~.x$P), # Put covariances in separate column
+         spdiv=map_dbl(n, ~sum((.x/sum(.x))^q_sp)^(1/(1-q_sp))), # Sp. diversity
+         funcdiv=pmap_dbl(list(n, m, P), diversity, # Func. diversity
+                          q=q_fn, taxis=trait_axis(snail, res))) %>%
+  mutate(spdiv=spdiv/plants) %>% # Calculate species diversity per host plant spp.
+  ggplot(aes(x=spdiv, y=funcdiv, label=island, colour=habitat)) + # Plot results
+  geom_text(fontface="bold", size=4) +
   scale_x_continuous("species diversity per host plant species") +
   scale_y_continuous("functional diversity") +
   scale_colour_manual(values=c("#E69F00", "#0072B2")) +
-  theme_bw()
+  theme_bw() +
+  theme(panel.grid=element_blank())

@@ -27,8 +27,7 @@ get_div <- function(n, m1, m2, P11, P12, P21, P22, q, xi, taxis) {
   for (i in 1:length(n)) p <- p+n[i]*dmvnorm(x=ztab, mean=m[i,], sigma=P[i,,])
   p <- p/sum(p)
   Z <- exp(-as.matrix(dist(ztab, diag=TRUE, upper=TRUE))/xi)
-  func_div <- (p%*%(Z%*%p)^(q-1))^(1/(1-q))
-  return(func_div)
+  (p%*%(Z%*%p)^(q-1))^(1/(1-q))
 }
 
 # maximum likelihood estimates of mean and covariance of binormal distribution
@@ -43,7 +42,7 @@ mle_binorm <- function(dat) {
   Pe <- c(0, 0)%o%c(0, 0) # initialize covariance matrix
   for (i in 1:N) Pe <- Pe + (dat[i,]-me)%o%(dat[i,]-me) # obtain cov matrix
   Pe <- Pe/(N-1) # normalize by degrees of freedom minus 1 for unbiased estimate
-  return(c(me, Pe)) # return fitted mean and covariance, coerced into a vector
+  c(me, Pe) # return fitted mean and covariance, coerced into a vector
 }
 
 
