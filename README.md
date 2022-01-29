@@ -38,3 +38,10 @@ The directory `No_interaction_null_model` has the files:
 * `no_interaction.R`: script to perform all null model simulations, as well as obtain species- and functional diversity calculations for each
 
 The directory `General_1D_model` is like `Model_simulations`, but it only works for one-dimensional trait spaces. In return, it implements a fully general interaction structure between phenotypes, instead of restricting analysis to Gaussian interaction kernels. The code here implements two alternative interaction structures: one that is asymmetric, and one that is nonlocal (hierarchical competition with a competition-mortality tradeoff).
+
+The directory `Videos` has four short videos of the model's dynamics through time:
+
+* `mov_1D_S2.mp4`: Eco-evolutionary dynamics in a one-dimensional trait space, initialized with two species.
+* `mov_1D_S8.mp4`: Eco-evolutionary dynamics in a one-dimensional trait space, initialized with eight species.
+* `mov_2D_S3.mp4`: Eco-evolutionary dynamics in a two-dimensional trait space, initialized with three species.
+* `mov_2D_S25.mp4`: Eco-evolutionary dynamics in a two-dimensional trait space, initialized with twenty-five species.
