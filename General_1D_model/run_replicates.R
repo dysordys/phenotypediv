@@ -8,13 +8,13 @@ species_diversity <- function(n, q) {
   sum(p^q)^(1/(1-q))
 }
 
-functional_diversity <- function(n, m, s, q = 2, delta = 0.00001) {
+functional_diversity <- function(n, m, s, q = 2, delta = 0.001) {
   limits <- range(c(m - 4 * s, m + 4 * s)) # limits of integration
   taxis <- seq(limits[1], limits[2], by = delta) # trait axis
   p <- n / sum(n) # convert abundances to relative abundances
   dens <- rep(0, length(taxis)) # vector to store diversity data per grid cell
   for (i in 1:length(n)) dens <- dens + p[i]*dnorm(x=taxis, mean=m[i], sd=s[i])
-  (1/delta)*(sum(dens^q))^(1/(1-q)) # normalized functional diversity of order q
+  sum(dens^q)^(1/(1-q))/length(dens) # normalized functional diversity of order q
 }
 
 

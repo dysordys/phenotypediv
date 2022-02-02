@@ -22,7 +22,7 @@ diversity <- function(n, m, P, q, taxis) {
   s <- rep(0, nrow(ztab))
   for (i in 1:length(n)) s <- s+n[i]*dmvnorm(x=ztab, mean=m[[i]], sigma=P[[i]])
   s <- s/sum(s)
-  ((taxis[2]-taxis[1])^2)*(sum(s^q))^(1/(1-q))
+  sum(s^q)^(1/(1-q))/length(s)
 }
 
 # Obtain discretized trait axis (which will be used along both trait directions)
@@ -48,9 +48,7 @@ mle_binorm <- function(dat) {
   # Sub-function to extract sample mean trait
   # Input: a tibble with 3 columns: species, t1, and t2 (but "species" is unique)
   # Output: a vector with 2 entries, the mean t1 and mean t2
-  sample_mean <- function(data) {
-    return(c(mean(data$t1), mean(data$t2)))
-  }
+  sample_mean <- function(data) c(mean(data$t1), mean(data$t2))
   # Sub-function to extract sample trait covariance
   # Input: a tibble with 3 columns: species, t1, and t2 (but "species" is unique)
   # Output: a 2x2 matrix, the estimated trait covariance
@@ -60,7 +58,7 @@ mle_binorm <- function(dat) {
     m <- sample_mean(data)
     P <- c(0, 0)%o%c(0, 0)
     for (i in 1:N) P <- P + (tab[i,]-m)%o%(tab[i,]-m)
-    return(unname(P/(N-1)))
+    unname(P/(N-1))
   }
   dat %>%
     group_by(species) %>%

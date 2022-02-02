@@ -72,8 +72,7 @@ functional_diversity <- function(snap, q, taxis) {
     s <- s + n[i]*dmvnorm(x=grid, mean=m[i,], sigma=matrix(P[i,,], L, L))
   }
   s <- s/sum(s) # to get diversity values, the entries of s should sum to 1
-  res <- taxis[2]-taxis[1] # grid resolution of trait space
-  (res^L)*(sum(s^q))^(1/(1-q)) # normalized functional diversity of order q
+  sum(s^q)^(1/(1-q))/length(s) # normalized functional diversity of order q
 }
 
 # calculate distance-dependent functional diversity
