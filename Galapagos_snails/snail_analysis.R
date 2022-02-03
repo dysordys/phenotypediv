@@ -1,5 +1,5 @@
-require(tidyverse) # for efficient data manipulation and plotting
-require(mvtnorm) # for multivariate normal distributions
+library(tidyverse) # for efficient data manipulation and plotting
+library(mvtnorm) # for multivariate normal distributions
 
 
 # change these parameters to adjust species- and functional diversity metrics

@@ -1,5 +1,5 @@
-require(deSolve)
-require(tidyverse)
+library(deSolve)
+library(tidyverse)
 
 
 # Apply smoothed step function to array. Values less than 0 are set to 0; values

@@ -1,5 +1,5 @@
-require(tidyverse) # for efficient data manipulation and plotting
-require(mvtnorm) # for multivariate normal distributions
+library(tidyverse) # for efficient data manipulation and plotting
+library(mvtnorm) # for multivariate normal distributions
 
 
 # parameters controlling distance-dependent functional diversity metric:
@@ -121,4 +121,5 @@ snail_diversity %>%
   scale_x_continuous("species diversity per host plant species") +
   scale_y_continuous("functional diversity") +
   scale_colour_manual(values=c("#E69F00", "#0072B2")) +
-  theme_bw()
+  theme_bw() +
+  theme(panel.grid=element_blank())

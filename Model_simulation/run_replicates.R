@@ -56,5 +56,8 @@ ggplot(experiment) +
   geom_point() +
   scale_x_continuous(name="species diversity") +
   scale_y_log10(name="functional diversity") +
-  scale_colour_manual(values=cpal, name="competition width") +
-  theme_bw()
+  scale_colour_manual(values=c("#999999", "#E69F00", "#56B4E9", "#009E73",
+                               "#0072B2", "#CC79A7"),
+                      name="competition width") +
+  theme_bw() +
+  theme(panel.grid=element_blank())

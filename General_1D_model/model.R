@@ -22,4 +22,4 @@ tseq <- seq(0, 1e6, l=1001)
 sol <- ode(func=eqs, y=ic, parms=params, times=tseq) %>%
   organize_results(params)
 
-plot_snapshot(sol, NA, c(NA, NA, NA), 1001, params$b)
+plot_snapshot(filter(sol, time==max(time)), c(NA, NA, NA), 1001, params$b)
