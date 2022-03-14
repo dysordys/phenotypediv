@@ -1,11 +1,11 @@
-library(tidyverse) # for efficient data manipulation and plotting
-library(mvtnorm) # for multivariate normal distributions
+library(tidyverse) # For efficient data manipulation and plotting
+library(mvtnorm) # For multivariate normal distributions
 
 
-# change these parameters to adjust species- and functional diversity metrics
-q_sp <- 2 # order of species diversity index (2 corresponds to inverse Simpson)
-q_fn <- 2 # order of functional diversity index
-res <- 501 # Resolution of trait axis binning; increase for more bins
+# Change these parameters to adjust species- and functional diversity metrics
+q_sp <- 2 # Order of species diversity index (2 corresponds to inverse Simpson)
+q_fn <- 2 # Order of functional diversity index
+res <- 501 # Number of bins to divide trait axis into; increase for better resolution
 
 
 # Calculate functional diversity over 2D trait space
@@ -90,11 +90,8 @@ snail <- read_csv("snaildata.csv") %>%
   select(island, habitat, species, t1, t2) # Relevant columns only
 
 snail %>%
-  group_by(island, habitat) %>%
-  nest() %>%
-  ungroup() %>%
-  left_join(read_csv("vegzonetotals.csv"),
-            by="island") %>% # Add host plant species richness data
+  nest(data = c(species, t1, t2)) %>%
+  left_join(read_csv("vegzonetotals.csv"), by="island") %>% # Host plant sp. richnesses
   rowwise() %>% # Choose plant richness from appropriate habitat:
   mutate(plants=if_else(habitat=="arid", AridTotal, HumidTotal)) %>%
   ungroup() %>%
@@ -104,8 +101,8 @@ snail %>%
          S=map_int(n, length), # Species richness per island
          m=map(fit, ~.x$m), # Put means in separate column
          P=map(fit, ~.x$P), # Put covariances in separate column
-         spdiv=map_dbl(n, ~sum((.x/sum(.x))^q_sp)^(1/(1-q_sp))), # Sp. diversity
-         funcdiv=pmap_dbl(list(n, m, P), diversity, # Func. diversity
+         spdiv=map_dbl(n, ~sum((.x/sum(.x))^q_sp)^(1/(1-q_sp))), # Species diversity
+         funcdiv=pmap_dbl(list(n, m, P), diversity, # Functional diversity
                           q=q_fn, taxis=trait_axis(snail, res))) %>%
   mutate(spdiv=spdiv/plants) %>% # Calculate species diversity per host plant spp.
   ggplot(aes(x=spdiv, y=funcdiv, label=island, colour=habitat)) + # Plot results

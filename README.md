@@ -3,11 +3,12 @@
 ### System requirements
 
 * Operating systems: CentOS 7, Ubuntu 19.10, Ubuntu 20.04, MacOS 10.13, Windows 10.
-* Software dependencies: R (has been tested with R 4.1.0).
+* Software dependencies: R (has been tested with R version 4.1.2).
 * Required R packages:
-  - `deSolve`: Integrating differential equations.
-  - `mvtnorm`: Multivariate normal distributions.
-  - `tidyverse`: Efficient data manipulation and plotting.
+  - `deSolve` (version 1.28): integrating differential equations
+  - `mvtnorm` (version 1.1-2): multivariate normal distributions
+  - `tidyverse` (version 1.3.1): efficient data manipulation and plotting
+  - `ks` (version 1.13.4): multidimensional kernel density estimation
 * Required non-standard hardware: none.
 * Typical installation time on a normal desktop computer: no appreciable time if R is already installed. Otherwise, it is the installation time of R and the above three packages.
 
@@ -20,6 +21,7 @@ The directory `Galapagos_snails` has the files:
 * `readme.txt`: short description of the data file `snaildata.csv`
 * `vegzonetotals.csv`: the number of distinct host plant species found on the humid and arid zones of each island, in comma-separated value format
 * `snail_analysis.R`: code to obtain and plot species- and functional diversity in the snail dataset
+* `snail_analysis_kernsmooth.R`: code to obtain and plot species- and functional diversity in the snail dataset, using kernel density estimates instead of fitting multivariate Gaussian distributions to estimate functional diversity
 * `snail_distance_dep.R`: code to obtain and plot species- and functional diversity in the snail dataset, with distance-dependent diversity metric
 
 The directory `Model_simulation` has the files:
@@ -41,7 +43,7 @@ The directory `General_1D_model` is like `Model_simulations`, but it only works 
 
 The directory `Videos` has four short videos of the model's dynamics through time:
 
-* `mov_1D_S2.mp4`: Eco-evolutionary dynamics in a one-dimensional trait space, initialized with two species.
-* `mov_1D_S8.mp4`: Eco-evolutionary dynamics in a one-dimensional trait space, initialized with eight species.
-* `mov_2D_S3.mp4`: Eco-evolutionary dynamics in a two-dimensional trait space, initialized with three species.
-* `mov_2D_S25.mp4`: Eco-evolutionary dynamics in a two-dimensional trait space, initialized with twenty-five species.
+* `mov_1D_S2.mp4`: eco-evolutionary dynamics in a one-dimensional trait space, initialized with two species.
+* `mov_1D_S8.mp4`: eco-evolutionary dynamics in a one-dimensional trait space, initialized with eight species.
+* `mov_2D_S3.mp4`: eco-evolutionary dynamics in a two-dimensional trait space, initialized with three species.
+* `mov_2D_S25.mp4`: eco-evolutionary dynamics in a two-dimensional trait space, initialized with twenty-five species.
